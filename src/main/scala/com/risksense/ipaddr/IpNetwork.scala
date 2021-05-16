@@ -321,6 +321,11 @@ object IpNetwork {
 
   private val fwdSlashStr = "/"
 
+  /** Have an instance of the IpNetwork ordering here to be
+    * able to access it from IpSet without infinite recursion
+    * due to Scala 2.13 implicit changes. */
+  def ordering: Ordering[IpNetwork] = Ordering[IpNetwork]
+
   /** Creates an [[IpNetwork]] from an IpAddress and prefix.
     *
     * @param address  An IpAddress object

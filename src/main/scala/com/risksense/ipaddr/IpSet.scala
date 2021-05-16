@@ -74,7 +74,7 @@ case class IpSet private[ipaddr] (networkSeq: IndexedSeq[IpNetwork]) // scalasty
     */
   override val hashCode: Int = MurmurHash3.orderedHash(networkSeq.map(_.hashCode))
 
-  final implicit def ordering: Ordering[IpNetwork] = Ordering[IpNetwork]
+  final implicit def ordering: Ordering[IpNetwork] = IpNetwork.ordering
 
   /** String representation of this IpSet.
     *
@@ -141,7 +141,7 @@ case class IpSet private[ipaddr] (networkSeq: IndexedSeq[IpNetwork]) // scalasty
     * @param that a IpNetwork object.
     * @return an IpSet resulting from addition of `that` IpNetwork to `this`
     */
-  def +(that: IpNetwork): IpSet = { // scalastyle:ignore method.name
+  override def +(that: IpNetwork): IpSet = { // scalastyle:ignore method.name
     if (this.contains(that)) {
       this
     } else {
@@ -186,7 +186,7 @@ case class IpSet private[ipaddr] (networkSeq: IndexedSeq[IpNetwork]) // scalasty
     * @param that the IpNetwork object to remove from this IpSet.
     * @return a new IpSet
     */
-  def -(that: IpNetwork): IpSet = { // scalastyle:ignore method.name
+  override def -(that: IpNetwork): IpSet = { // scalastyle:ignore method.name
     val (matched, unmatched) = networkSeq.partition(_.contains(that))
     if (matched.isEmpty) {
       this
@@ -212,7 +212,7 @@ case class IpSet private[ipaddr] (networkSeq: IndexedSeq[IpNetwork]) // scalasty
     this.networkSeq.toIterator
   }
 
-  def keysIteratorFrom(start: IpNetwork): Iterator[IpNetwork] = {
+  override def iteratorFrom(start: IpNetwork): Iterator[IpNetwork] = {
     val matchFoundAt = this.networkSeq.indexWhere(_ >= start)
     if (matchFoundAt < 0) {
       Nil.toIterator
@@ -400,6 +400,19 @@ case class IpSet private[ipaddr] (networkSeq: IndexedSeq[IpNetwork]) // scalasty
     IpSet(res.toSeq)
   }
 
+  /** Difference of `this` IpSet and `that`
+    *
+    * @param that an IpSet to subtract from this IpSet
+    * @return an IpSet containing all elements from `this` that are not in `that`
+    */
+  override def diff(that: collection.Set[IpNetwork]): SortedSet[IpNetwork] = {
+    var result = this
+    val it = that.iterator
+    while (it.hasNext) {
+      result = result - it.next
+    }
+    result
+  }
 }
 
 /** Contains various methods to facilitate creation of IpSet */
